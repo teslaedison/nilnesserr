@@ -23,6 +23,7 @@ if err2 != nil {
 - https://github.com/alingse/sundrylint/issues/4
 - https://github.com/alingse/nilnesserr/issues/1
 
+we use https://github.com/alingse/go-linter-runner to run linter on GitHub Actions for public golang repos
 
 ## Installation
 
