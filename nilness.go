@@ -34,7 +34,8 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 	// soon as we've visited a subtree.  Had we traversed the CFG,
 	// we would need to retain the set of facts for each block.
 	seen := make([]bool, len(fn.Blocks)) // seen[i] means visit should ignore block i
-	seenCount := 0
+	lastBlock := findFuncLastBlock(fn)
+
 	var visit func(b *ssa.BasicBlock, stack []fact, checkedErrors []ssa.Value)
 
 	visit = func(b *ssa.BasicBlock, stack []fact, checkedErrors []ssa.Value) {
@@ -42,15 +43,16 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 			return
 		}
 		seen[b.Index] = true
-		seenCount++
-		isLast := seenCount == len(fn.Blocks)
 
 		// check this block return a nil value error
-		checkIsNilnesserr(
-			pass, b, isLast,
-			func(v ssa.Value) bool {
-				return nilnessOf(stack, v) == isnil
-			}, checkedErrors)
+		if b != lastBlock {
+			checkIsNilnesserr(
+				pass, b,
+				func(v ssa.Value) bool {
+					return nilnessOf(stack, v) == isnil
+				},
+				checkedErrors)
+		}
 
 		// For nil comparison blocks, report an error if the condition
 		// is degenerate, and push a nilness fact on the stack when

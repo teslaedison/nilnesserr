@@ -1,8 +1,10 @@
 package a
 
 import (
+	"context"
 	"fmt"
 	"math/rand/v2"
+	"strings"
 )
 
 func Do() error {
@@ -94,4 +96,23 @@ func Call5() error {
 		return err
 	}
 	return err
+}
+
+func Call6(ctx context.Context, in string) (int, error) {
+	if err := Do(); err != nil {
+		return 0, err
+	}
+	if !strings.Contains(in, "${{") || !strings.Contains(in, "}}") {
+		return 1, nil
+	}
+	res, err := Do3()
+	if err != nil {
+		return 23, err
+	}
+	ret := res + 1
+	if err := Do2(); err != nil {
+		return 4, err
+	}
+	ret = ret + 1
+	return 5, err
 }
