@@ -46,7 +46,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		isLast := seenCount == len(fn.Blocks)
 
 		// check this block return a nil value error
-		checkReturnNilnessErr(
+		checkIsNilnesserr(
 			pass, b, isLast,
 			func(v ssa.Value) bool {
 				return nilnessOf(stack, v) == isnil
@@ -349,11 +349,6 @@ func (ff facts) negate() facts {
 	return nn
 }
 
-func is[T any](x any) bool {
-	_, ok := x.(T)
-	return ok
-}
-
 func isNillable(t types.Type) bool {
 	// TODO(adonovan): CoreType (+ case *Interface) looks wrong.
 	// This should probably use Underlying, and handle TypeParam
@@ -368,42 +363,6 @@ func isNillable(t types.Type) bool {
 		return true
 	case *types.Basic:
 		return t == types.Typ[types.UnsafePointer]
-	}
-	return false
-}
-
-// isRangeIndex reports whether the instruction is a slice indexing
-// operation slice[i] within a "for range slice" loop. The operation
-// could be explicit, such as slice[i] within (or even after) the
-// loop, or it could be implicit, such as "for i, v := range slice {}".
-// (These cannot be reliably distinguished.)
-func isRangeIndex(instr *ssa.IndexAddr) bool {
-	// Here we reverse-engineer the go/ssa lowering of range-over-slice:
-	//
-	//      n = len(x)
-	//      jump loop
-	// loop:                                                "rangeindex.loop"
-	//      phi = φ(-1, incr) #rangeindex
-	//      incr = phi + 1
-	//      cond = incr < n
-	//      if cond goto body else done
-	// body:                                                "rangeindex.body"
-	//      instr = &x[incr]
-	//      ...
-	// done:
-	if incr, ok := instr.Index.(*ssa.BinOp); ok && incr.Op == token.ADD {
-		if b := incr.Block(); b.Comment == "rangeindex.loop" {
-			if If, ok := b.Instrs[len(b.Instrs)-1].(*ssa.If); ok {
-				if cond := If.Cond.(*ssa.BinOp); cond.X == incr && cond.Op == token.LSS {
-					if call, ok := cond.Y.(*ssa.Call); ok {
-						common := call.Common()
-						if blt, ok := common.Value.(*ssa.Builtin); ok && blt.Name() == "len" {
-							return common.Args[0] == instr.X
-						}
-					}
-				}
-			}
-		}
 	}
 	return false
 }
