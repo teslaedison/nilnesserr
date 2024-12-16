@@ -19,6 +19,13 @@ func Do2() error {
 	return nil
 }
 
+func Do3() (int, error) {
+	if rand.Float64() > 0.5 {
+		return 1, fmt.Errorf("do err")
+	}
+	return 0, nil
+}
+
 func Empty() int {
 	var a int
 	a += 1
@@ -71,4 +78,20 @@ func Call4() (error, error) {
 		return err, err2 // want `return a nil value error`
 	}
 	return nil, nil
+}
+
+func Call5() error {
+	err := Do()
+	if err != nil {
+		return err
+	}
+	a, err := Do3()
+	if err != nil {
+		return err
+	}
+	_ = a
+	if err := Do2(); err != nil {
+		return err
+	}
+	return err
 }
