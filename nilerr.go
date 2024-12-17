@@ -3,7 +3,6 @@
 package nilnesserr
 
 import (
-	"go/token"
 	"go/types"
 
 	"golang.org/x/tools/go/analysis"
@@ -32,20 +31,6 @@ func getCheckedErr(binOp *ssa.BinOp) ssa.Value {
 		return binOp.Y
 	}
 	return nil
-}
-
-func findFuncLastBlock(fn *ssa.Function) *ssa.BasicBlock {
-	var maxPos token.Pos
-	var lastBlock *ssa.BasicBlock
-	for _, b := range fn.Blocks {
-		for _, instr := range b.Instrs {
-			if instr.Pos() > maxPos {
-				lastBlock = b
-				maxPos = instr.Pos()
-			}
-		}
-	}
-	return lastBlock
 }
 
 func checkIsNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, checkedErrors []ssa.Value, isNilnees func(value ssa.Value) bool) {

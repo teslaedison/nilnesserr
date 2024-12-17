@@ -136,3 +136,87 @@ func Call7() error {
 
 	return nil
 }
+
+// bad case
+func Call8() error {
+	err := Do()
+	if err != nil {
+		return err
+	}
+
+	err2 := Do()
+	if err2 == nil {
+		return err
+	} else {
+		if _, err := Do3(); err != nil {
+			return err
+		}
+		return err2
+	}
+}
+
+// bad case
+func Call9() (err error) {
+	if err = Do(); err != nil {
+		return
+	} else if err = Do2(); err != nil {
+		return
+	}
+
+	_, _ = Do3()
+	return
+}
+
+// bad case
+func Call10() (int, error) {
+	res, err := Do3()
+	if err == nil {
+		num, err := Do3()
+		num += res
+		if err != nil {
+			return 0, err
+		}
+		if num > 0 {
+			err := Do()
+			if err != nil {
+				return num, err
+			}
+		}
+		return num, err
+	}
+	return 0, err
+}
+
+func Call11() error {
+	_, err := Do3()
+	if err != nil {
+		return err
+	} else if err = Do2(); err != nil {
+		return err
+	}
+	return err
+}
+
+func Call12() (err error) {
+	err = Do()
+	if err != nil {
+		return err
+	}
+	err2 := Do2()
+	if err2 != nil {
+		return
+	}
+	return
+}
+
+func Call13() error {
+	_, err := Do3()
+	if err != nil {
+		_, err := Do3()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+	return nil
+}
