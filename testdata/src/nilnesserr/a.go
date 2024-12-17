@@ -116,3 +116,23 @@ func Call6(ctx context.Context, in string) (int, error) {
 	ret = ret + 1
 	return 5, err
 }
+
+func Call7() error {
+	var a any = int(1)
+	switch a.(type) {
+	case int:
+		err := Do()
+		if err != nil {
+			return err
+		}
+		if err2 := Do2(); err2 != nil {
+			return err2
+		}
+		return err
+	case string:
+	default:
+		return nil
+	}
+
+	return nil
+}

@@ -34,7 +34,16 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 	// soon as we've visited a subtree.  Had we traversed the CFG,
 	// we would need to retain the set of facts for each block.
 	seen := make([]bool, len(fn.Blocks)) // seen[i] means visit should ignore block i
-	lastBlock := findFuncLastBlock(fn)
+
+	// now, only report the bad case under an if block
+	// TODO: thinking add more
+	var isCheckErrBlock = func(b *ssa.BasicBlock) bool {
+		switch b.Comment {
+		case "if.then", "if.else":
+			return true
+		}
+		return false
+	}
 
 	var visit func(b *ssa.BasicBlock, stack []fact, checkedErrors []ssa.Value)
 
@@ -45,14 +54,12 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		seen[b.Index] = true
 
 		// check this block return a nil value error
-		if b != lastBlock {
-			checkIsNilnesserr(
-				pass, b,
-				func(v ssa.Value) bool {
-					return nilnessOf(stack, v) == isnil
-				},
-				checkedErrors)
-		}
+		checkIsNilnesserr(
+			pass, b,
+			checkedErrors,
+			func(v ssa.Value) bool {
+				return nilnessOf(stack, v) == isnil
+			})
 
 		// For nil comparison blocks, report an error if the condition
 		// is degenerate, and push a nilness fact on the stack when
@@ -60,9 +67,6 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		if binop, tsucc, fsucc := eq(b); binop != nil {
 			// extract the checkedErr
 			checkErr := getCheckedErr(binop)
-			if checkErr != nil {
-				checkedErrors = append(checkedErrors, checkErr)
-			}
 
 			xnil := nilnessOf(stack, binop.X)
 			ynil := nilnessOf(stack, binop.Y)
@@ -87,7 +91,13 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 					if d == skip && len(d.Preds) == 1 {
 						continue
 					}
-					visit(d, stack, checkedErrors)
+
+					nextErrs := checkedErrors
+					if checkErr != nil && isCheckErrBlock(d) {
+						nextErrs = append(nextErrs, checkErr)
+					}
+
+					visit(d, stack, nextErrs)
 				}
 				return
 			}
@@ -118,7 +128,12 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 							s = append(s, newFacts.negate()...)
 						}
 					}
-					visit(d, s, checkedErrors)
+					nextErrs := checkedErrors
+					if checkErr != nil && isCheckErrBlock(d) {
+						nextErrs = append(nextErrs, checkErr)
+					}
+
+					visit(d, s, nextErrs)
 				}
 				return
 			}

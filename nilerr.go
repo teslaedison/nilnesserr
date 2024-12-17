@@ -48,7 +48,7 @@ func findFuncLastBlock(fn *ssa.Function) *ssa.BasicBlock {
 	return lastBlock
 }
 
-func checkIsNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, isNilnees func(value ssa.Value) bool, checkedErrors []ssa.Value) {
+func checkIsNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, checkedErrors []ssa.Value, isNilnees func(value ssa.Value) bool) {
 	for i := range b.Instrs {
 		instr, ok := b.Instrs[i].(*ssa.Return)
 		if !ok {
