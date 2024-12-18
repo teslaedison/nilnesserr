@@ -50,7 +50,7 @@ if !ok {
 
 ```
 
-maybe this is also a bug, should return a non-nil value error
+maybe this is also a bug, should return a non-nil value error after the if
 
 ## License
 
