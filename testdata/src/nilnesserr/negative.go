@@ -33,11 +33,10 @@ func Call6(ctx context.Context, in string) (int, error) {
 	if err != nil {
 		return 23, err
 	}
-	ret := res + 1
+	_ = res + 1
 	if err := Do2(); err != nil {
 		return 4, err
 	}
-	ret = ret + 1
 	return 5, err
 }
 
@@ -125,4 +124,16 @@ func Call14() error {
 		return nil
 	}
 	return nil
+}
+
+func Call16() (int, error) {
+	err := Do()
+	if err != nil {
+		return 0, err
+	}
+	res, err := Do3()
+	if err != nil {
+		return 0, err
+	}
+	return res, err
 }

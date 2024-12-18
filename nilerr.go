@@ -33,7 +33,7 @@ func getCheckedErr(binOp *ssa.BinOp) ssa.Value {
 	return nil
 }
 
-func checkIsNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, checkedErrors []ssa.Value, isNilnees func(value ssa.Value) bool) {
+func checkIsNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, nonNilErrors []ssa.Value, isNilnees func(value ssa.Value) bool) {
 	for i := range b.Instrs {
 		instr, ok := b.Instrs[i].(*ssa.Return)
 		if !ok {
@@ -45,15 +45,16 @@ func checkIsNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, checkedErrors []s
 				continue
 			}
 
-			if len(checkedErrors) == 0 {
+			if len(nonNilErrors) == 0 {
 				continue
 			}
 
 			// skip for res is the last checked error
-			lastErr := checkedErrors[len(checkedErrors)-1]
+			lastErr := nonNilErrors[len(nonNilErrors)-1]
 			if lastErr == res {
 				continue
 			}
+
 			// report
 			pos := instr.Pos()
 			if pos.IsValid() {
