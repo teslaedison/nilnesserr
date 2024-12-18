@@ -50,7 +50,8 @@ func checkIsNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, checkedErrors []s
 			}
 
 			// skip for res is the last checked error
-			if checkedErrors[len(checkedErrors)-1] == res {
+			lastErr := checkedErrors[len(checkedErrors)-1]
+			if lastErr == res {
 				continue
 			}
 			// report

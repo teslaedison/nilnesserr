@@ -45,7 +45,7 @@ func Call() error {
 		if a > 10 {
 			fmt.Println(a)
 			if a > 11 {
-				return err1 // want `return a nil value error`
+				return err1 // want `return a nil value error after check error`
 			}
 		}
 	}
@@ -75,7 +75,7 @@ func Call4() (error, error) {
 	}
 	err2 := Do2()
 	if err2 != nil {
-		return err, err2 // want `return a nil value error`
+		return err, err2 // want `return a nil value error after check error`
 	}
 	return nil, nil
 }
@@ -87,7 +87,7 @@ func Call12() (err error) {
 	}
 	err2 := Do2()
 	if err2 != nil {
-		return // want `return a nil value error`
+		return // want `return a nil value error after check error`
 	}
 	return
 }
@@ -99,18 +99,18 @@ func Call15() error {
 	} else if err2 := Do2(); err2 == nil {
 		return err2
 	} else {
-		return err // want `return a nil value error`
+		return err // want `return a nil value error after check error`
 	}
 }
 
 func Call13() error {
-	_, err := Do3()
+	err := Do2()
 	if err != nil {
 		_, err := Do3()
 		if err != nil {
 			return err
 		}
-		return err // want `return a nil value error`
+		return err // want `return a nil value error after check error`
 	}
 	return nil
 }

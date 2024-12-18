@@ -11,7 +11,7 @@ const (
 powered by nilness and nilerr.`
 
 	linterCategory = "nilnesserr"
-	linterMessage  = "return a nil value error"
+	linterMessage  = "return a nil value error after check error"
 )
 
 type LinterSetting struct{}
