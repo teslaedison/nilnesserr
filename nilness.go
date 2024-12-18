@@ -34,18 +34,18 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 	// we would need to retain the set of facts for each block.
 	seen := make([]bool, len(fn.Blocks)) // seen[i] means visit should ignore block i
 
-	var visit func(b *ssa.BasicBlock, stack []fact, nonNilErrors []ssa.Value)
+	var visit func(b *ssa.BasicBlock, stack []fact, errors []checkedErr)
 
-	visit = func(b *ssa.BasicBlock, stack []fact, nonNilErrors []ssa.Value) {
+	visit = func(b *ssa.BasicBlock, stack []fact, errors []checkedErr) {
 		if seen[b.Index] {
 			return
 		}
 		seen[b.Index] = true
 
 		// check this block return a nil value error
-		checkIsNilnesserr(
+		checkNilnesserr(
 			pass, b,
-			nonNilErrors,
+			errors,
 			func(v ssa.Value) bool {
 				return nilnessOf(stack, v) == isnil
 			})
@@ -54,8 +54,8 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		// is degenerate, and push a nilness fact on the stack when
 		// visiting its true and false successor blocks.
 		if binop, tsucc, fsucc := eq(b); binop != nil {
-			// extract the checkedErr
-			checkErr := getCheckedErr(binop)
+			// extract the err != nil or err == nil
+			errValue := getCheckedErrValue(binop)
 
 			xnil := nilnessOf(stack, binop.X)
 			ynil := nilnessOf(stack, binop.Y)
@@ -81,7 +81,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 						continue
 					}
 
-					visit(d, stack, nonNilErrors)
+					visit(d, stack, errors)
 				}
 				return
 			}
@@ -105,15 +105,19 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 					// (We could do be more precise with full dataflow
 					// analysis of control-flow joins.)
 					s := stack
-					errs := nonNilErrors
+					errs := errors
 					if len(d.Preds) == 1 {
 						if d == tsucc {
 							s = append(s, newFacts...)
+							// add nil error
+							if errValue != nil {
+								errs = append(errs, checkedErr{err: errValue, nilness: isnil})
+							}
 						} else if d == fsucc {
 							s = append(s, newFacts.negate()...)
 							// add non-nil error
-							if checkErr != nil {
-								errs = append(errs, checkErr)
+							if errValue != nil {
+								errs = append(errs, checkedErr{err: errValue, nilness: isnonnil})
 							}
 						}
 					}
@@ -151,7 +155,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 							extract0.Tuple == extract1.Tuple {
 							for _, d := range b.Dominees() {
 								if len(d.Preds) == 1 && d == fsucc {
-									visit(d, append(stack, fact{extract0, isnil}), nonNilErrors)
+									visit(d, append(stack, fact{extract0, isnil}), errors)
 								}
 							}
 						}
@@ -161,7 +165,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		}
 
 		for _, d := range b.Dominees() {
-			visit(d, stack, nonNilErrors)
+			visit(d, stack, errors)
 		}
 	}
 

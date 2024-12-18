@@ -102,15 +102,3 @@ func Call15() error {
 		return err // want `return a nil value error after check error`
 	}
 }
-
-func Call13() error {
-	err := Do2()
-	if err != nil {
-		_, err := Do3()
-		if err != nil {
-			return err
-		}
-		return err // want `return a nil value error after check error`
-	}
-	return nil
-}

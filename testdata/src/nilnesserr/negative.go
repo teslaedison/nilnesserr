@@ -137,3 +137,29 @@ func Call16() (int, error) {
 	}
 	return res, err
 }
+
+func Call17(ctx context.Context) error {
+	err := Do2()
+	if err == nil {
+		return nil
+	}
+
+	num2, err := Do3()
+	if err != nil {
+		_ = num2
+		return err
+	}
+	return err
+}
+
+func Call13() error {
+	err := Do2()
+	if err != nil {
+		_, err := Do3()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+	return nil
+}
