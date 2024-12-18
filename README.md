@@ -4,7 +4,7 @@ nilnesserr = nilness + nilerr
 
 `nilnesserr` is a linter for report return nil error in go. It combines the features of [nilness](https://cs.opensource.google/go/x/tools/+/refs/tags/v0.28.0:go/analysis/passes/nilness/nilness.go) and [nilerr](https://github.com/gostaticanalysis/nilerr), providing a concise way to detect return an unrelated/nil-values error.
 
-## Simple case
+## Case
 
 case 1
 ```go
@@ -17,6 +17,7 @@ if err2 != nil {
     return err // which should return err2 after check `err2 != nil`, but return a nil value error
 }
 ```
+
 
 ## Some Real Bugs
 
