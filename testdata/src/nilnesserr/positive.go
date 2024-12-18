@@ -32,14 +32,6 @@ func Empty() int {
 	return a
 }
 
-func Call2() error {
-	err := Do()
-	if err != nil {
-		return err
-	}
-	return err
-}
-
 func Call() error {
 	err1 := Do()
 	if err1 != nil {
@@ -58,6 +50,14 @@ func Call() error {
 		}
 	}
 	return nil
+}
+
+func Call2() error {
+	err := Do()
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func Call3() error {
@@ -90,6 +90,17 @@ func Call12() (err error) {
 		return // want `return a nil value error`
 	}
 	return
+}
+
+func Call15() error {
+	err := Do()
+	if err != nil {
+		return err
+	} else if err2 := Do2(); err2 == nil {
+		return err2
+	} else {
+		return err // want `return a nil value error`
+	}
 }
 
 func Call13() error {
