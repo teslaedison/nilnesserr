@@ -30,7 +30,7 @@ we use https://github.com/alingse/go-linter-runner to run linter on GitHub Actio
 Install using Go modules:
 
 ```bash
-go get github.com/alingse/nilnesserr@main
+go get github.com/alingse/nilnesserr@latest
 ```
 
 ## TODO
