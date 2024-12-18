@@ -9,7 +9,7 @@ import (
 
 func main() {
 	setting := nilnesserr.LinterSetting{}
-	
+
 	analyzer, err := nilnesserr.NewAnalyzer(setting)
 	if err != nil {
 		log.Fatal(err)

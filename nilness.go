@@ -8,7 +8,6 @@
 package nilnesserr
 
 import (
-	_ "embed"
 	"go/token"
 	"go/types"
 
@@ -35,19 +34,9 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 	// we would need to retain the set of facts for each block.
 	seen := make([]bool, len(fn.Blocks)) // seen[i] means visit should ignore block i
 
-	// now, only report the bad case under an if block
-	// TODO: thinking add more
-	var isCheckErrBlock = func(b *ssa.BasicBlock) bool {
-		switch b.Comment {
-		case "if.then", "if.else":
-			return true
-		}
-		return false
-	}
+	var visit func(b *ssa.BasicBlock, stack []fact, nonNilErrors []ssa.Value)
 
-	var visit func(b *ssa.BasicBlock, stack []fact, checkedErrors []ssa.Value)
-
-	visit = func(b *ssa.BasicBlock, stack []fact, checkedErrors []ssa.Value) {
+	visit = func(b *ssa.BasicBlock, stack []fact, nonNilErrors []ssa.Value) {
 		if seen[b.Index] {
 			return
 		}
@@ -56,7 +45,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		// check this block return a nil value error
 		checkIsNilnesserr(
 			pass, b,
-			checkedErrors,
+			nonNilErrors,
 			func(v ssa.Value) bool {
 				return nilnessOf(stack, v) == isnil
 			})
@@ -92,12 +81,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 						continue
 					}
 
-					nextErrs := checkedErrors
-					if checkErr != nil && isCheckErrBlock(d) {
-						nextErrs = append(nextErrs, checkErr)
-					}
-
-					visit(d, stack, nextErrs)
+					visit(d, stack, nonNilErrors)
 				}
 				return
 			}
@@ -121,19 +105,20 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 					// (We could do be more precise with full dataflow
 					// analysis of control-flow joins.)
 					s := stack
+					errs := nonNilErrors
 					if len(d.Preds) == 1 {
 						if d == tsucc {
 							s = append(s, newFacts...)
 						} else if d == fsucc {
 							s = append(s, newFacts.negate()...)
+							// add non-nil error
+							if checkErr != nil {
+								errs = append(errs, checkErr)
+							}
 						}
 					}
-					nextErrs := checkedErrors
-					if checkErr != nil && isCheckErrBlock(d) {
-						nextErrs = append(nextErrs, checkErr)
-					}
 
-					visit(d, s, nextErrs)
+					visit(d, s, errs)
 				}
 				return
 			}
@@ -166,7 +151,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 							extract0.Tuple == extract1.Tuple {
 							for _, d := range b.Dominees() {
 								if len(d.Preds) == 1 && d == fsucc {
-									visit(d, append(stack, fact{extract0, isnil}), checkedErrors)
+									visit(d, append(stack, fact{extract0, isnil}), nonNilErrors)
 								}
 							}
 						}
@@ -176,7 +161,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		}
 
 		for _, d := range b.Dominees() {
-			visit(d, stack, checkedErrors)
+			visit(d, stack, nonNilErrors)
 		}
 	}
 
