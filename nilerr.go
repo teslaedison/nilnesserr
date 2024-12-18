@@ -47,10 +47,8 @@ func getLatestNonnilValue(errors []checkedErr, res ssa.Value) ssa.Value {
 		last := errors[j]
 		if last.err == res {
 			return nil
-		} else {
-			if last.nilness == isnonnil {
-				return last.err
-			}
+		} else if last.nilness == isnonnil {
+			return last.err
 		}
 	}
 
