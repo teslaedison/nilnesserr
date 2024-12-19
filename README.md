@@ -26,13 +26,12 @@ if err2 != nil {
 
 we use https://github.com/alingse/go-linter-runner to run linter on GitHub Actions for public golang repos
 
-## Installation
-
-Install using Go modules:
+## Install
 
 ```bash
-go get github.com/alingse/nilnesserr@latest
+go install github.com/alingse/nilnesserr/cmd/nilnesserr@latest
 ```
+
 
 ## TODO
 
