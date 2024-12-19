@@ -10,8 +10,7 @@ const (
 	linterDoc  = `This linter reports that it checks for err != nil, but it returns a different nil value error.
 powered by nilness and nilerr.`
 
-	linterCategory = "nilnesserr"
-	linterMessage  = "return a nil value error after check error"
+	linterMessage = "return a nil value error after check error"
 )
 
 type LinterSetting struct{}
