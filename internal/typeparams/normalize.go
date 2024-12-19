@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"go/types"
-	"os"
-	"strings"
 )
 
 //go:generate go run copytermlist.go
@@ -120,24 +118,12 @@ type termSet struct {
 	terms    termlist
 }
 
-func indentf(depth int, format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, strings.Repeat(".", depth)+format+"\n", args...)
-}
+var ErrNilType = errors.New("nil type")
+var ErrUnreachable = errors.New("unreachable")
 
 func computeTermSetInternal(t types.Type, seen map[types.Type]*termSet, depth int) (res *termSet, err error) {
 	if t == nil {
-		panic("nil type")
-	}
-
-	if debug {
-		indentf(depth, "%s", t.String())
-		defer func() {
-			if err != nil {
-				indentf(depth, "=> %s", err)
-			} else {
-				indentf(depth, "=> %s", res.terms.String())
-			}
-		}()
+		return nil, ErrNilType
 	}
 
 	const maxTermCount = 100
@@ -200,7 +186,7 @@ func computeTermSetInternal(t types.Type, seen map[types.Type]*termSet, depth in
 			}
 		}
 	case *types.TypeParam:
-		panic("unreachable")
+		return nil, ErrUnreachable
 	default:
 		// For all other types, the term set is just a single non-tilde term
 		// holding the type itself.
