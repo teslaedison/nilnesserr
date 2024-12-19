@@ -34,9 +34,9 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 	// we would need to retain the set of facts for each block.
 	seen := make([]bool, len(fn.Blocks)) // seen[i] means visit should ignore block i
 
-	var visit func(b *ssa.BasicBlock, stack []fact, errors []checkedErr)
+	var visit func(b *ssa.BasicBlock, stack []fact, errors []errFact)
 
-	visit = func(b *ssa.BasicBlock, stack []fact, errors []checkedErr) {
+	visit = func(b *ssa.BasicBlock, stack []fact, errors []errFact) {
 		if seen[b.Index] {
 			return
 		}
@@ -55,7 +55,7 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 		// visiting its true and false successor blocks.
 		if binop, tsucc, fsucc := eq(b); binop != nil {
 			// extract the err != nil or err == nil
-			errValue := getCheckedErrValue(binop)
+			errValue := extractCheckedErrorValue(binop)
 
 			xnil := nilnessOf(stack, binop.X)
 			ynil := nilnessOf(stack, binop.Y)
@@ -111,13 +111,13 @@ func runFunc(pass *analysis.Pass, fn *ssa.Function) {
 							s = append(s, newFacts...)
 							// add nil error
 							if errValue != nil {
-								errs = append(errs, checkedErr{err: errValue, nilness: isnil})
+								errs = append(errs, errFact{value: errValue, nilness: isnil})
 							}
 						} else if d == fsucc {
 							s = append(s, newFacts.negate()...)
 							// add non-nil error
 							if errValue != nil {
-								errs = append(errs, checkedErr{err: errValue, nilness: isnonnil})
+								errs = append(errs, errFact{value: errValue, nilness: isnonnil})
 							}
 						}
 					}

@@ -23,7 +23,7 @@ func isConstNil(res ssa.Value) bool {
 	return false
 }
 
-func getCheckedErrValue(binOp *ssa.BinOp) ssa.Value {
+func extractCheckedErrorValue(binOp *ssa.BinOp) ssa.Value {
 	if isErrType(binOp.X) && isConstNil(binOp.Y) {
 		return binOp.X
 	}
@@ -33,29 +33,26 @@ func getCheckedErrValue(binOp *ssa.BinOp) ssa.Value {
 	return nil
 }
 
-type checkedErr struct {
-	err     ssa.Value
-	nilness nilness
-}
+type errFact fact
 
-func getLatestNonnilValue(errors []checkedErr, res ssa.Value) ssa.Value {
+func findLastNonnilValue(errors []errFact, res ssa.Value) ssa.Value {
 	if len(errors) == 0 {
 		return nil
 	}
 
 	for j := len(errors) - 1; j >= 0; j-- {
 		last := errors[j]
-		if last.err == res {
+		if last.value == res {
 			return nil
 		} else if last.nilness == isnonnil {
-			return last.err
+			return last.value
 		}
 	}
 
 	return nil
 }
 
-func checkNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, errors []checkedErr, isNilnees func(value ssa.Value) bool) {
+func checkNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, errors []errFact, isNilnees func(value ssa.Value) bool) {
 	for i := range b.Instrs {
 		instr, ok := b.Instrs[i].(*ssa.Return)
 		if !ok {
@@ -66,9 +63,9 @@ func checkNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, errors []checkedErr
 			if !isErrType(res) || isConstNil(res) || !isNilnees(res) {
 				continue
 			}
-			// check the latestValue error that is isnonnil
-			latestValue := getLatestNonnilValue(errors, res)
-			if latestValue == nil {
+			// check the lastValue error that is isnonnil
+			lastValue := findLastNonnilValue(errors, res)
+			if lastValue == nil {
 				continue
 			}
 			// report
