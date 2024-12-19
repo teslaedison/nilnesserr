@@ -72,9 +72,8 @@ func checkNilnesserr(pass *analysis.Pass, b *ssa.BasicBlock, errors []errFact, i
 			pos := instr.Pos()
 			if pos.IsValid() {
 				pass.Report(analysis.Diagnostic{
-					Pos:      pos,
-					Category: linterCategory,
-					Message:  linterMessage,
+					Pos:     pos,
+					Message: linterMessage,
 				})
 			}
 		}
