@@ -18,6 +18,10 @@ func TestAnalyzer(t *testing.T) {
 			desc:     "nilnesserr",
 			settings: nilnesserr.LinterSetting{},
 		},
+		{
+			desc:     "cgo",
+			settings: nilnesserr.LinterSetting{},
+		},
 	}
 
 	for _, test := range testCases {
