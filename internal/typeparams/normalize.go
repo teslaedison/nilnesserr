@@ -10,10 +10,6 @@ import (
 	"go/types"
 )
 
-//go:generate go run copytermlist.go
-
-const debug = false
-
 var ErrEmptyTypeSet = errors.New("empty type set")
 
 // StructuralTerms returns a slice of terms representing the normalized
