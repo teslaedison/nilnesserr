@@ -35,7 +35,6 @@ go install github.com/alingse/nilnesserr/cmd/nilnesserr@latest
 
 ## TODO
 
-
 case 2
 
 ```go
@@ -48,6 +47,19 @@ if !ok {
     return err
 }
 
+```
+
+case 3
+
+```go
+err := do()
+if err != nil {
+    return err
+}
+_, ok := do2()
+if !ok {
+    return errors.Wrap(err)
+}
 ```
 
 maybe this is also a bug, should return a non-nil value error after the if
